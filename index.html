@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b91c1c">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<title>BULLETIN CONTROL — Sécurité Privée</title>
+<style>
+:root{--bg:#f3f5f8;--card:#fff;--ink:#1b2430;--mut:#6b7686;--pri:#b91c1c;--acc:#c81e2b;--line:#e1e6ed}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,Roboto,sans-serif;padding:12px 12px 40px}
+main{max-width:760px;margin:auto} h1{font-size:21px;margin:16px 0 4px;color:var(--pri)} .sub{color:var(--mut);font-size:13px;margin:0 0 12px}
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.grid{grid-template-columns:1fr}}
+label{display:block;font-weight:700;margin-bottom:5px;font-size:13px} input{width:100%;font-size:21px;font-weight:700;padding:10px;border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+select{width:100%;font-size:18px;padding:12px;border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)} input:disabled{background:#eef0f2;color:#667} input:focus{outline:none;border-color:var(--pri)} .hint{font-size:11px;color:var(--mut);margin-top:4px}.fixed{padding:10px;border-radius:10px;background:#b91c1c12;font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button{font-size:15px;padding:12px 14px;border:0;border-radius:10px;background:var(--pri);color:white;font-weight:700}button.sec{background:var(--line);color:var(--ink)}
+.big{text-align:center}.big .lbl{color:var(--mut);font-size:13px}.big .val{font-size:38px;font-weight:800;color:var(--acc)}.big .diff{font-size:13px;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:6px 2px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}th:first-child,td:first-child{text-align:left}
+th{color:var(--mut);font-weight:600}.section td{font-weight:800;color:var(--pri);padding-top:12px;border-bottom:0}.tot td{font-weight:800}.var td{background:#b91c1c0d}.note,.msg{font-size:11px;color:var(--mut)}.msg{text-align:center;min-height:16px}
+</style>
+</head>
+<body><main>
+<h1>BULLETIN CONTROL</h1>
+<p class="sub"><strong>Spécial Sécurité Privée</strong><br>Simulation &amp; contrôle de votre bulletin de paie</p>
+
+<div class="card">
+<div class="grid">
+ <div><label for="contrat">Type de contrat</label><select id="contrat"><option value="complet">Temps complet</option><option value="partiel">Temps partiel</option></select></div>
+ <div id="dureeWrap"><label for="duree">Durée contractuelle mensuelle (h)</label><input id="duree" type="number" min="0.01" max="151.66" step="0.01" value="96" disabled><div class="hint" id="dureeHint">Temps complet : 151,67 h fixes</div></div>
+ <div><label>Taux horaire (€)</label><input id="taux" type="number" min="0" step="0.001" value="12.960"><div class="hint">Base selon le type de contrat</div></div>
+ <div><label>Nombre de vacations</label><input id="vac" type="number" min="0" step="1" value="12"><div class="hint">1 vacation = 12 h · nuit = 75 % · paniers = vacations</div></div>
+ <div><label>Ancienneté (%)</label><input id="anc" type="number" min="0" step="0.1" value="12"></div>
+ <div><label>Chevauchement sortant (h)</label><input id="chev" type="number" min="0" step="0.5" value="0"><div class="hint">Heures retirées de l'habillage du mois</div></div>
+ <div><label>Dont heures de nuit sortantes</label><input id="chevNuit" type="number" min="0" step="0.5" value="0"><div class="hint">Ex. 7 h de chevauchement = 6 h de nuit</div></div>
+ <div><label>Report entrant travail (h)</label><input id="reportH" type="number" min="0" step="0.5" value="0"><div class="hint">Heures du mois précédent à payer ce mois</div></div>
+ <div><label>Dont heures de nuit reportées</label><input id="reportNuit" type="number" min="0" step="0.5" value="0"><div class="hint">Ajoutées à la majoration nuit du mois</div></div>
+ <div><label>Heures fériées</label><input id="ferie" type="number" min="0" step="1" value="0"><div class="hint">Ex. 5 h (19h–00h) ou 7 h (00h–07h)</div></div>
+ <div><label>Régularisation brute (€)</label><input id="reg" type="number" step="0.01" value="0"><div class="hint">0 si aucune · une valeur positive s'ajoute au brut</div></div>
+ <div><label>Plafond Sécurité sociale (€)</label><input id="pmss" type="number" min="0" step="0.01" value="3925"></div>
+ <div><label>Heures Divers (h)</label><input id="diversH" type="number" min="0" step="0.5" value="0"><div class="hint">Ex. 4 ou 24 h · montant calculé automatiquement au taux horaire brut</div></div>
+ <div><label>Acompte (€)</label><input id="acompte" type="number" min="0" step="0.01" value="0"></div>
+</div>
+<div class="fixed" style="margin-top:12px">Divers : heures saisies × taux horaire brut · Entretien tenue : 20 € · Vêtement : 8,78 €</div>
+<div class="row"><button id="save">Enregistrer</button><button id="reset" class="sec">Valeurs test</button></div><div class="msg" id="msg"></div>
+</div>
+
+<div class="card big">
+ <div class="lbl">Net à payer avant impôt</div><div class="val" id="net">—</div><div class="diff" id="summary"></div>
+</div>
+
+<div class="card"><table><thead><tr><th>Désignation</th><th>Base</th><th>Taux</th><th>Montant</th></tr></thead><tbody id="tbody"></tbody></table></div>
+<div class="card note">Simulation indicative. En temps partiel, vérifier notamment le PMSS applicable, les heures syndicales et les autres rubriques selon le contrat et les bulletins. Les montants sont arrondis au centime ligne par ligne. Les micro-écarts d'un centime liés au logiciel de paie pourront être ajustés après contrôle sur plusieurs bulletins.</div>
+
+<script>
+"use strict";
+const BASE_H=151.67, NUIT_PCT=.75, NUIT_MAJ=.10, HAB_RATE=.131, PANIER_RATE=4.36, VET=8.78, TENUE=20;
+const HEALTH_RATE=.00510, INV_RATE=.006, SS_PLAF=.069, SS_DEPLAF=.004, T1=.04010, CSG=.068, CSG_CRDS=.029, CSG_ABAT=.9825;
+const ids=["contrat","duree","taux","vac","anc","chev","chevNuit","reportH","reportNuit","ferie","reg","pmss","diversH","acompte"];
+const n=id=>{let x=parseFloat(document.getElementById(id).value);return Number.isFinite(x)?x:0};
+const r=x=>Math.round((x+Number.EPSILON)*100)/100;
+const eur=x=>Number(x).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const num=x=>Number(x).toLocaleString("fr-FR",{minimumFractionDigits:0,maximumFractionDigits:2});
+function calc(){
+ const taux=n("taux"),vac=n("vac"),anc=n("anc"),chev=n("chev"),chevNuit=n("chevNuit"),reportH=n("reportH"),reportNuit=n("reportNuit"),ferie=n("ferie"),reg=n("reg"),pmss=n("pmss"),diversH=n("diversH"),acompte=n("acompte");
+ const contrat=document.getElementById("contrat").value;
+ const duree=contrat==="complet"?BASE_H:n("duree");
+ const base=r(duree*taux);
+ const heuresTrav=Math.max(0,vac*12-chev);
+ const heuresNuitBase=vac*12*NUIT_PCT;
+ const heuresNuit=Math.max(0,heuresNuitBase-chevNuit)+reportNuit;
+ const reportTrav=r(reportH*taux);
+ const nuit=r(heuresNuit*taux*NUIT_MAJ);
+ const ferieMont=r(ferie*taux);
+ const ancien=r(base*anc/100);
+ const divers=r(diversH*taux);
+ const hab=r(heuresTrav*HAB_RATE);
+ const brut=r(base+reportTrav+nuit+ferieMont+ancien+divers+hab+reg);
+ const sante=r(pmss*HEALTH_RATE);
+ const inv=r(brut*INV_RATE);
+ const ssPlafBase=Math.min(brut,pmss);
+ const ssPlaf=r(ssPlafBase*SS_PLAF);
+ const ssDeplaf=r(brut*SS_DEPLAF);
+ const t1base=Math.min(brut,pmss);
+ const retraite=r(t1base*T1);
+ const baseCSG=r(brut*CSG_ABAT+sante+inv);
+ const csg=r(baseCSG*CSG);
+ const crds=r(baseCSG*CSG_CRDS);
+ const cot=r(sante+inv+ssPlaf+ssDeplaf+retraite+csg+crds);
+ const panier=r(vac*PANIER_RATE);
+ const net=r(brut-cot+VET+panier+TENUE-acompte);
+ return {contrat,duree,taux,vac,anc,chev,chevNuit,reportH,reportNuit,ferie,reg,pmss,diversH,acompte,base,heuresTrav,heuresNuitBase,heuresNuit,reportTrav,nuit,ferieMont,ancien,divers,hab,brut,sante,inv,ssPlafBase,ssPlaf,ssDeplaf,t1base,retraite,baseCSG,csg,crds,cot,panier,net};
+}
+function tr(lib,base,taux,mont,cls=""){return `<tr class="${cls}"><td>${lib}</td><td>${base===""?"":base}</td><td>${taux}</td><td>${eur(mont)} €</td></tr>`}
+function render(){
+ const isPart=document.getElementById("contrat").value==="partiel";
+ document.getElementById("duree").disabled=!isPart;
+ document.getElementById("dureeHint").textContent=isPart?"Saisir les heures mensuelles prévues au contrat":"Temps complet : 151,67 h fixes";
+ const duration=Number(document.getElementById("duree").value);
+ if(isPart&&(!Number.isFinite(duration)||duration<=0||duration>=BASE_H)){
+ document.getElementById("tbody").innerHTML="";document.getElementById("net").textContent="—";document.getElementById("summary").textContent="Saisir une durée contractuelle partielle valide (inférieure à 151,67 h).";return;
+ }
+ const v=calc(), b=document.getElementById("tbody"); let h='<tr class="section"><td colspan="4">BRUT</td></tr>';
+ h+=tr("Salaire de base",num(v.duree)+" h",num(v.taux)+" €",v.base,"var");
+ h+=tr("Report travail mois précédent",num(v.reportH)+" h",num(v.taux)+" €",v.reportTrav,"var");
+ h+=tr("Majoration nuit",num(v.heuresNuit)+" h","10 %",v.nuit,"var");
+ h+=tr("Heures fériées",num(v.ferie)+" h",num(v.taux)+" €",v.ferieMont,"var");
+ h+=tr("Prime ancienneté",eur(v.base)+" €",num(v.anc)+" %",v.ancien,"var");
+ h+=tr("Divers",num(v.diversH)+" h",num(v.taux)+" €",v.divers,"var");
+ h+=tr("Habillage",num(v.heuresTrav)+" h","0,131 €",v.hab,"var");
+ h+=tr("Régularisation","","",v.reg,"var");
+ h+=tr("BRUT","","",v.brut,"tot");
+ h+='<tr class="section"><td colspan="4">COTISATIONS SALARIÉ</td></tr>';
+ h+=tr("Complémentaire santé",eur(v.pmss)+" €","0,510 %",-v.sante,"var");
+ h+=tr("Invalidité-décès",eur(v.brut)+" €","0,600 %",-v.inv);
+ h+=tr("SS plafonnée",eur(v.ssPlafBase)+" €","6,900 %",-v.ssPlaf);
+ h+=tr("SS déplafonnée",eur(v.brut)+" €","0,400 %",-v.ssDeplaf);
+ h+=tr("Complémentaire Tranche 1",eur(v.t1base)+" €","4,010 %",-v.retraite);
+ h+=`<tr><td>Base CSG</td><td>${eur(v.baseCSG)} €</td><td></td><td></td></tr>`;
+ h+=tr("CSG non imposable",eur(v.baseCSG)+" €","6,800 %",-v.csg);
+ h+=tr("CSG/CRDS imposable",eur(v.baseCSG)+" €","2,900 %",-v.crds);
+ h+=tr("TOTAL COTISATIONS","","",-v.cot,"tot");
+ h+='<tr class="section"><td colspan="4">NET</td></tr>';
+ h+=tr("Prime vêtement forfaitaire","1","8,78 €",VET);
+ h+=tr("Prime panier",num(v.vac),"4,360 €",v.panier,"var");
+ h+=tr("Indemnité entretien tenue","1","20,00 €",TENUE);
+ h+=tr("Acompte","","",-v.acompte,"var");
+ h+=tr("NET À PAYER AVANT IMPÔT","","",v.net,"tot");
+ b.innerHTML=h;
+ document.getElementById("net").textContent=eur(v.net)+" €";
+ document.getElementById("summary").textContent=`Brut ${eur(v.brut)} € · Cotisations ${eur(v.cot)} € · Nuit ${num(v.heuresNuit)} h`;
+}
+ids.forEach(id=>document.getElementById(id).addEventListener("input",render));
+document.getElementById("save").onclick=()=>{localStorage.setItem("goron_v5",JSON.stringify(Object.fromEntries(ids.map(id=>[id,id==="contrat"?document.getElementById(id).value:n(id)]))));document.getElementById("msg").textContent="Valeurs enregistrées sur ce téléphone."};
+document.getElementById("reset").onclick=()=>{const d={contrat:"complet",duree:96,taux:12.960,vac:12,anc:12,chev:0,chevNuit:0,reportH:0,reportNuit:0,ferie:0,reg:0,pmss:3925,diversH:0,acompte:0};ids.forEach(id=>document.getElementById(id).value=d[id]);render()};
+try{const s=JSON.parse((localStorage.getItem("goron_v5")||localStorage.getItem("goron_v4"))||"null");if(s)ids.forEach(id=>{if(s[id]!==undefined)document.getElementById(id).value=s[id]})}catch(e){}
+render();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js");
+</script></main></body></html>
